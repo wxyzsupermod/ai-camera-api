@@ -1,0 +1,75 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'/><title>Gate Detector</title>
+<meta name='viewport' content='width=device-width,initial-scale=1'/>
+<style>
+body{font-family:system-ui,Arial,sans-serif;margin:1rem;background:#111;color:#eee}
+button{margin:0 .4rem .6rem 0;padding:.55rem .95rem;cursor:pointer;border:0;border-radius:4px;background:#2563eb;color:#fff;font-size:.75rem}
+button.secondary{background:#555}button.success{background:#059669}button.warn{background:#d97706}
+label{font-size:.6rem;text-transform:uppercase;opacity:.75;display:block;margin-top:.5rem}
+input{width:100%;padding:.25rem .4rem;border:1px solid #333;border-radius:4px;background:#1e1e1e;color:#eee;font-size:.7rem}
+fieldset{border:1px solid #333;padding:.55rem .8rem;margin:.7rem 0}
+legend{padding:0 .35rem;font-size:.55rem;letter-spacing:.05em;opacity:.7}
+h1{margin-top:0;font-size:1.4rem}
+code{font-size:.65rem}
+img{background:#000;max-width:100%;border:1px solid #333}
+.row{display:flex;flex-wrap:wrap;gap:1.1rem}
+section{flex:1 1 340px;min-width:300px}
+#status{font-weight:600}
+.notice{font-size:.55rem;opacity:.6;line-height:1.4}
+footer{margin-top:2rem;font-size:.6rem;opacity:.6}
+</style>
+</head><body>
+<h1>Gate Detector</h1>
+<p>Status: <span id='status'>...</span></p>
+<p>
+  <button onclick='startDet()'>Start</button>
+  <button class='secondary' onclick='stopDet()'>Stop</button>
+  <button class='success' onclick="document.getElementById('shot').src='/snapshot?'+Date.now()">Snapshot</button>
+  <button class='warn' onclick='startCal()'>Capture Cal Frames</button>
+  <button class='success' onclick='applyCal()'>Apply Calibration</button>
+</p>
+<div class='row'>
+  <section><h3>Stream</h3><img id='stream' src='/stream' onclick='setROI(event)' title='Click sets x0,y0; Shift+Click sets x1,y1' /></section>
+  <section><h3>Snapshot</h3><img id='shot' src='/snapshot' /></section>
+  <section><h3>Detection Config</h3>
+    <fieldset><legend>Params</legend>
+      <label>Threshold</label><input id='threshold' type='number' min='0' max='255'>
+      <label>Alpha</label><input id='alpha' type='number' step='0.001' min='0' max='1'>
+      <label>Morph Kernel</label><input id='morph_kernel' type='number' min='1' max='31'>
+      <label>Min Area</label><input id='min_area' type='number'>
+      <label>Max Area</label><input id='max_area' type='number'>
+      <label>Speed Min</label><input id='speed_px_min' type='number' step='0.1'>
+      <label>Speed Max</label><input id='speed_px_max' type='number' step='0.1'>
+      <label>Frames Confirm</label><input id='frames_to_confirm' type='number'>
+      <label>Cooldown (s)</label><input id='cooldown_seconds' type='number' step='0.1'>
+    </fieldset>
+    <fieldset><legend>ROI</legend>
+      <label>X0</label><input id='roi0' type='number' step='0.001'>
+      <label>Y0</label><input id='roi1' type='number' step='0.001'>
+      <label>X1</label><input id='roi2' type='number' step='0.001'>
+      <label>Y1</label><input id='roi3' type='number' step='0.001'>
+    </fieldset>
+    <p><button class='success' onclick='saveCfg()'>Save Config</button></p>
+  </section>
+  <section><h3>Calibration</h3>
+    <p>Capture Status: <span id='calStatus'>Idle</span></p>
+    <p class='notice'>Capture frames while drone flies. Percentile non-zero pixel area in ROI sets min/max.</p>
+  </section>
+  <section style='flex:1 1 100%'><h3>Latest Event Meta</h3><code id='eventMeta'>None</code></section>
+</div>
+<footer>Uptime: <span id='uptime'>0.0</span>s · <a style='color:#93c5fd' href='/diagnostics'>Diagnostics</a></footer>
+<script>
+async function refreshStatus(){const r=await fetch('/status');if(r.ok){const j=await r.json();const el=document.getElementById('status');el.textContent=j.detection_enabled?'ACTIVE':'IDLE';el.style.color=j.detection_enabled?'#4ade80':'#facc15';}}
+async function startDet(){await fetch('/control/start',{method:'POST'});refreshStatus();}
+async function stopDet(){await fetch('/control/stop',{method:'POST'});refreshStatus();}
+async function loadCfg(){const r=await fetch('/config');if(!r.ok)return;const c=await r.json();threshold.value=c.threshold;alpha.value=c.alpha;morph_kernel.value=c.morph_kernel;min_area.value=c.min_area;max_area.value=c.max_area;speed_px_min.value=c.speed_px_min;speed_px_max.value=c.speed_px_max;frames_to_confirm.value=c.frames_to_confirm;cooldown_seconds.value=c.cooldown_seconds;roi0.value=c.roi[0];roi1.value=c.roi[1];roi2.value=c.roi[2];roi3.value=c.roi[3];}
+async function saveCfg(){const obj={threshold:+threshold.value,alpha:+alpha.value,morph_kernel:+morph_kernel.value,min_area:+min_area.value,max_area:+max_area.value,speed_px_min:+speed_px_min.value,speed_px_max:+speed_px_max.value,frames_to_confirm:+frames_to_confirm.value,cooldown_seconds:+cooldown_seconds.value,roi:[+roi0.value,+roi1.value,+roi2.value,+roi3.value]};await fetch('/config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(obj)});loadCfg();}
+function setROI(ev){const img=document.getElementById('stream');const rect=img.getBoundingClientRect();const x=(ev.clientX-rect.left)/rect.width;const y=(ev.clientY-rect.top)/rect.height;if(ev.shiftKey){roi2.value=x.toFixed(3);roi3.value=y.toFixed(3);}else{roi0.value=x.toFixed(3);roi1.value=y.toFixed(3);} }
+async function pollEvent(){const r=await fetch('/events/latest');if(r.status===200){const j=await r.json();eventMeta.textContent=JSON.stringify(j);} }
+async function pollCal(){const r=await fetch('/calibration/status');if(r.ok){const j=await r.json();calStatus.textContent=j.active?('Capturing '+j.captured+'/'+j.target):('Idle ('+j.captured+')');}}
+async function startCal(){const frames=prompt('Capture how many frames?','120');if(!frames)return;await fetch('/calibration/start?frames='+encodeURIComponent(frames),{method:'POST'});pollCal();}
+async function applyCal(){const r=await fetch('/calibration/apply',{method:'POST'});if(r.ok){const j=await r.json();alert('Applied min='+j.min_area+' max='+j.max_area+' samples='+j.samples);loadCfg();}}
+async function tickUptime(){const r=await fetch('/health');if(r.ok){const j=await r.json();uptime.textContent=j.uptime.toFixed(1);} }
+setInterval(refreshStatus,1500);setInterval(pollEvent,3000);setInterval(pollCal,1200);setInterval(tickUptime,2000);
+window.onload=function(){refreshStatus();loadCfg();pollEvent();pollCal();tickUptime();};
+</script>
+</body></html>

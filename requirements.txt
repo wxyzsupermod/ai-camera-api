@@ -1,0 +1,7 @@
+numpy==1.24.2  # Pin to match system packages (simplejpeg / picamera2 compiled against this)
+opencv-python-headless
+pyyaml
+# Do NOT upgrade numpy beyond system version on Pi to avoid binary ABI mismatch errors like:
+# ValueError: numpy.dtype size changed ... (simplejpeg)
+# picamera2 is typically installed via apt (python3-picamera2). If needed via pip (not recommended here):
+# picamera2

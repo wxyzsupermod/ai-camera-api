@@ -1,0 +1,57 @@
+{
+  "event_timestamp_utc": "2025-08-30T02-04-39.895332+00-00",
+  "candidate_centers": [
+    [
+      9.0,
+      9.5
+    ],
+    [
+      180.5,
+      2.0
+    ],
+    [
+      10.0,
+      8.5
+    ],
+    [
+      180.5,
+      2.0
+    ],
+    [
+      2.0,
+      11.5
+    ]
+  ],
+  "first_candidate_ts": 1756519479.8620775,
+  "last_candidate_ts": 1756519479.8953319,
+  "config": {
+    "frame_size": [
+      640,
+      480
+    ],
+    "target_fps": 120,
+    "exposure_us": 7882,
+    "analogue_gain": 8.0,
+    "roi": [
+      0.0,
+      0.0,
+      1.0,
+      1.0
+    ],
+    "threshold": 28,
+    "alpha": 0.002,
+    "morph_kernel": 3,
+    "min_area": 0,
+    "max_area": 5000,
+    "speed_px_min": 30,
+    "speed_px_max": 500,
+    "frames_to_confirm": 3,
+    "cooldown_seconds": 1,
+    "pre_frames": 6,
+    "post_frames": 6,
+    "output_dir": "events",
+    "preview": false,
+    "log_level": "debug",
+    "save_debug_masks": true
+  }
+}
