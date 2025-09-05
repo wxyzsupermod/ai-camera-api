@@ -1,5 +1,8 @@
-# Ignore generated events data
-/events/
+# Ignore generated event files but keep the directory itself tracked
+/events/*
+# Allow a placeholder or documentation file(s) to remain tracked
+!/events/.gitkeep
+!/events/README.md
 
 # (Optional common Python ignores - adjust if needed)
 __pycache__/
