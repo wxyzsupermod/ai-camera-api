@@ -82,6 +82,19 @@ For each event: `events/<UTC_ISO_TIMESTAMP>/frame.jpg` plus `meta.json` (timesta
 5. Verify consecutive frames logic: ensure `frames_to_confirm` not too high (a very fast drone might appear only 3–5 frames at 120 FPS).
 6. Set `cooldown_seconds` just longer than maximum expected transit time.
 
+## Background / Motion Model (Adaptive)
+At startup the detector now performs a short calibration phase (default `calibration_seconds: 2.0`). It collects grayscale frames and builds per‑pixel mean and variance using Welford's online method. During detection a pixel is considered motion if:
+
+	|I - mean| > threshold + std_factor * std
+
+Config additions:
+* `std_factor` (default 2.5): multiplies per‑pixel standard deviation to derive adaptive threshold component (suppresses moving grass / sensor flicker).
+* `calibration_seconds` (default 2.0): duration of initial statistics collection before motion detection begins.
+
+Only pixels not currently flagged as motion update the background (EMA with `alpha`) to follow slow illumination drift without absorbing fast moving drones.
+
+The legacy simple frame differencing path remains for fallback / compatibility but is superseded by the adaptive model in normal operation.
+
 ## Performance Notes
 * Keep Python loop lean: disable debug overlays once tuned.
 * If CPU bound, reduce resolution further (e.g. 512x384, 480x360) or set grayscale only pipeline.

@@ -15,6 +15,8 @@ class DetectionConfig:
     roi: Tuple[float, float, float, float]
     threshold: int
     alpha: float
+    std_factor: float
+    calibration_seconds: float
     morph_kernel: int
     min_area: int
     max_area: int
@@ -45,6 +47,8 @@ def load_config(path: str) -> DetectionConfig:
         roi=tuple(data.get('roi', [0, 0, 1, 1])),
         threshold=int(data.get('threshold', 30)),
         alpha=float(data.get('alpha', 0.02)),
+        std_factor=float(data.get('std_factor', 2.5)),
+        calibration_seconds=float(data.get('calibration_seconds', 2.0)),
         morph_kernel=int(data.get('morph_kernel', 3)),
         min_area=int(data.get('min_area', 25)),
         max_area=int(data.get('max_area', 2500)),
@@ -71,6 +75,8 @@ def save_config(cfg: DetectionConfig, path: str):  # pragma: no cover - side eff
         'roi': list(cfg.roi),
         'threshold': cfg.threshold,
         'alpha': cfg.alpha,
+    'std_factor': cfg.std_factor,
+    'calibration_seconds': cfg.calibration_seconds,
         'morph_kernel': cfg.morph_kernel,
         'min_area': cfg.min_area,
         'max_area': cfg.max_area,

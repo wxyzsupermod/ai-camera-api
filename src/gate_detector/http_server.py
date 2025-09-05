@@ -147,7 +147,7 @@ class DetectorHTTPHandler(BaseHTTPRequestHandler):
                     cfg = self.shared.cfg
                 if not cfg:
                     self._send_json({'error': 'no config loaded'}, 503); return
-                keys = ['frame_size','target_fps','exposure_us','analogue_gain','roi','threshold','alpha','morph_kernel','min_area','max_area','speed_px_min','speed_px_max','frames_to_confirm','cooldown_seconds','pre_frames','post_frames','output_dir','preview','log_level','save_debug_masks']
+                keys = ['frame_size','target_fps','exposure_us','analogue_gain','roi','threshold','alpha','std_factor','calibration_seconds','morph_kernel','min_area','max_area','speed_px_min','speed_px_max','frames_to_confirm','cooldown_seconds','pre_frames','post_frames','output_dir','preview','log_level','save_debug_masks']
                 self._send_json({k: getattr(cfg, k) for k in keys}); return
             if path == '/calibration/status':
                 with self.shared.lock:
