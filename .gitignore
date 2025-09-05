@@ -1,0 +1,7 @@
+# Ignore generated events data
+/events/
+
+# (Optional common Python ignores - adjust if needed)
+__pycache__/
+*.py[cod]
+*.log
